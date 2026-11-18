@@ -22,6 +22,10 @@ export const api = {
   preview: (day) => req('/redeem/preview' + (day ? `?business_day=${encodeURIComponent(day)}` : '')),
   seal: (body) => req('/redeem/seal', { method: 'POST', body: JSON.stringify(body) }),
   batches: () => req('/batches'),
+  scanExpire: (body) => req('/expire/scan', { method: 'POST', body: JSON.stringify(body || {}) }),
+  scans: (day) => req('/expire/scans' + (day ? `?business_day=${encodeURIComponent(day)}` : '')),
   getDay: () => req('/settings/day'),
   setDay: (business_day) => req('/settings/day', { method: 'PUT', body: JSON.stringify({ business_day }) }),
+  getScanTtl: () => req('/settings/scan-ttl'),
+  setScanTtl: (ttl_seconds) => req('/settings/scan-ttl', { method: 'PUT', body: JSON.stringify({ ttl_seconds }) }),
 }

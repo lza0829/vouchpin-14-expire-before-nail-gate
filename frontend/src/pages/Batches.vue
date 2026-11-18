@@ -12,7 +12,7 @@ onMounted(load)
   <div class="panel">
     <p class="msg err" v-if="err">{{ err }}</p>
     <table>
-      <thead><tr><th>批次</th><th>业务日</th><th>状态</th><th>笔数</th><th>合计</th><th>钉扎时刻</th></tr></thead>
+      <thead><tr><th>批次</th><th>业务日</th><th>状态</th><th>笔数</th><th>合计</th><th>钉扎时刻</th><th>扫描批次</th><th>扫描时刻</th><th>扫描作废</th></tr></thead>
       <tbody>
         <tr v-for="b in rows" :key="b.id">
           <td>{{ b.id }}</td>
@@ -21,6 +21,9 @@ onMounted(load)
           <td>{{ b.fact_count }}</td>
           <td>{{ b.total_amount }}</td>
           <td>{{ b.sealed_at }}</td>
+          <td>{{ b.expire_scan_id ?? '—' }}</td>
+          <td>{{ b.scan_scanned_at ?? '—' }}</td>
+          <td>{{ b.scan_voided_count ?? '—' }}</td>
         </tr>
       </tbody>
     </table>

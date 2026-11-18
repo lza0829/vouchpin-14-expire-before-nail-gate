@@ -9,7 +9,7 @@ def list_batches(conn: sqlite3.Connection) -> list[dict[str, Any]]:
 
 def create_batch(conn: sqlite3.Connection, **fields: Any) -> int:
     cur = conn.execute(
-        "INSERT INTO redeem_batches(business_day, status, fact_count, total_amount, sealed_at, note) VALUES(?,?,?,?,?,?)",
+        "INSERT INTO redeem_batches(business_day, status, fact_count, total_amount, sealed_at, note, expire_scan_id, scan_scanned_at, scan_voided_count) VALUES(?,?,?,?,?,?,?,?,?)",
         (
             fields["business_day"],
             fields.get("status") or "sealed",
@@ -17,6 +17,9 @@ def create_batch(conn: sqlite3.Connection, **fields: Any) -> int:
             float(fields.get("total_amount") or 0),
             fields.get("sealed_at"),
             fields.get("note") or "",
+            fields.get("expire_scan_id"),
+            fields.get("scan_scanned_at"),
+            fields.get("scan_voided_count"),
         ),
     )
     return int(cur.lastrowid)

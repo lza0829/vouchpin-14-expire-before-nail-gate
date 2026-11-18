@@ -39,6 +39,9 @@ def add_event(body: dict[str, Any]) -> dict[str, Any]:
             raise HTTPException(400, "coupon_code / campaign_code 必填")
         if et == "redeem" and fact_repo.day_is_sealed(conn, day):
             raise HTTPException(409, f"业务日 {day} 核销已钉扎，禁止再写入核销")
+        if et == "issue" and fact_repo.day_is_sealed(conn, day):
+            # 钉扎后当日发放集合冻结，保证钉闸审计的「发放未核集合」不再变动
+            raise HTTPException(409, f"业务日 {day} 已钉扎，禁止再写入发放")
         amount = float(body.get("amount") or 0)
         if et == "redeem" and amount <= 0:
             # default face value from campaign

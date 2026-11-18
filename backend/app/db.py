@@ -42,9 +42,36 @@ CREATE TABLE IF NOT EXISTS redeem_batches (
   fact_count INTEGER NOT NULL DEFAULT 0,
   total_amount REAL NOT NULL DEFAULT 0,
   sealed_at TEXT,
-  note TEXT NOT NULL DEFAULT ''
+  note TEXT NOT NULL DEFAULT '',
+  expire_scan_id INTEGER,
+  scan_scanned_at TEXT,
+  scan_voided_count INTEGER
+);
+CREATE TABLE IF NOT EXISTS expire_scans (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  business_day TEXT NOT NULL,
+  scanned_at TEXT NOT NULL,
+  issued_count INTEGER NOT NULL DEFAULT 0,
+  voided_count INTEGER NOT NULL DEFAULT 0,
+  covered_event_id INTEGER NOT NULL DEFAULT 0,
+  note TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS expire_scan_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  scan_id INTEGER NOT NULL,
+  coupon_code TEXT NOT NULL,
+  campaign_code TEXT NOT NULL,
+  void_event_id INTEGER NOT NULL
 );
 '''
+
+# 批快照新增列（老库迁移用）：钉扎批绑定 expire_scan_id 与扫描摘要
+_BATCH_NEW_COLUMNS = {
+    "expire_scan_id": "expire_scan_id INTEGER",
+    "scan_scanned_at": "scan_scanned_at TEXT",
+    "scan_voided_count": "scan_voided_count INTEGER",
+}
 
 
 def connect(immediate: bool = False) -> sqlite3.Connection:
@@ -55,10 +82,18 @@ def connect(immediate: bool = False) -> sqlite3.Connection:
     return conn
 
 
+def _ensure_column(conn: sqlite3.Connection, table: str, column: str, ddl: str) -> None:
+    cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+    if column not in cols:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {ddl}")
+
+
 def init_db() -> None:
     conn = connect()
     try:
         conn.executescript(SCHEMA)
+        for col, ddl in _BATCH_NEW_COLUMNS.items():
+            _ensure_column(conn, "redeem_batches", col, ddl)
         conn.commit()
     finally:
         conn.close()
